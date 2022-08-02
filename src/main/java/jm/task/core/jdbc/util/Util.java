@@ -1,26 +1,52 @@
 package jm.task.core.jdbc.util;
 
-import java.net.URL;
+import jm.task.core.jdbc.model.User;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.Properties;
 
 public class Util {
-    public static final String USER_NAME = "root";
-    public static final String PASSWORD = "Mark41747";
-    public static final String URL = "jdbc:mysql://localhost:3306/Product";
-    public static Connection getConnection() {
-    Connection connection = null;
+    private final static String DRIVER = "com.mysql.cj.jdbc.Driver";
+    private final static String URL = "jdbc:mysql://localhost:3306/Product";
+    private final static String USERNAME = "root";
+    private final static String PASSWORD = "Mark41747";
+    private final static String DIALECT = "org.hibernate.dialect.MySQL8Dialect";
+    private static SessionFactory sessionFactory;
+
+    static {
         try {
-            connection = DriverManager.getConnection(URL, USER_NAME, PASSWORD);
-            System.out.println("connection is ok");
-        } catch  (SQLException throwables) {
-            throwables.printStackTrace();
-            throw new RuntimeException();
+            Properties properties = new Properties();
+            properties.setProperty("hibernate.connection.driver_class", DRIVER);
+            properties.setProperty("hibernate.connection.url", URL);
+            properties.setProperty("hibernate.connection.username", USERNAME);
+            properties.setProperty("hibernate.connection.password", PASSWORD);
+            properties.setProperty("hibernate.dialect", DIALECT);
+
+            Configuration configuration = new Configuration();
+            configuration.setProperties(properties);
+            configuration.addAnnotatedClass(User.class);
+            sessionFactory = configuration.buildSessionFactory();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Connection getConnection() {
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return connection;
     }
 
-    // реализуйте настройку соеденения с БД
+    public static Session getSession() {
+        return sessionFactory.openSession();
+    }
 }
